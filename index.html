@@ -74,7 +74,7 @@
       <button
         onclick="toggleSettings()"
         class="btn-premium bg-slate-200 hover:bg-slate-300 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200 px-4 py-3 rounded-2xl font-bold text-sm shadow-sm flex items-center gap-2">
-        ⚙️ API Key <span id="keyIndicator" class="text-rose-500">●</span>
+        ⚙️ API Key & Model <span id="keyIndicator" class="text-rose-500">●</span>
       </button>
       <button
         onclick="toggleTheme()"
@@ -84,24 +84,43 @@
     </div>
   </div>
 
-  <!-- HIDDEN API KEY CONFIGURATION (Sangat penting agar aman dari Github) -->
+  <!-- HIDDEN API KEY & MODEL CONFIGURATION -->
   <div id="settingsPanel" class="hidden bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-3xl p-6 mb-8 shadow-xl transition-all duration-300">
     <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-2">🔑 Pengaturan Gemini API Key</h3>
     <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">
-      API Key disimpan secara lokal di browser Anda dan aman dari pemindaian otomatis GitHub. Dapatkan kunci Anda secara gratis melalui Google AI Studio.
+      API Key disimpan secara lokal di browser Anda dan aman dari pemindaian otomatis GitHub.
     </p>
-    <div class="flex flex-col sm:flex-row gap-3">
-      <input 
-        type="password" 
-        id="apiKeyInput" 
-        placeholder="Masukkan API Key Gemini (AIzaSy...) Anda di sini..." 
-        class="flex-1 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white"
-      />
-      <button 
-        onclick="saveApiKey()" 
-        class="btn-premium bg-blue-600 text-white font-bold px-6 py-3 rounded-2xl text-sm shadow-md">
-        Simpan Kunci
-      </button>
+    
+    <div class="space-y-4">
+      <div class="flex flex-col sm:flex-row gap-3">
+        <input 
+          type="password" 
+          id="apiKeyInput" 
+          placeholder="Masukkan API Key Gemini (AIzaSy...) Anda di sini..." 
+          class="flex-1 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white"
+        />
+        <button 
+          onclick="saveApiKey()" 
+          class="btn-premium bg-blue-600 text-white font-bold px-6 py-3 rounded-2xl text-sm shadow-md">
+          Simpan Kunci
+        </button>
+      </div>
+
+      <!-- Fitur Pemilihan Model AI untuk Solusi Eror 429 -->
+      <div class="border-t border-slate-100 dark:border-slate-700 pt-4">
+        <label class="block text-xs font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">🤖 Pilihan Model AI Cadangan</label>
+        <select 
+          id="modelSelect" 
+          onchange="saveModel()" 
+          class="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white">
+          <option value="gemini-2.0-flash">Gemini 2.0 Flash (Default - Sangat Cepat)</option>
+          <option value="gemini-1.5-flash">Gemini 1.5 Flash (Sangat Stabil - Solusi jika sering Eror 429)</option>
+          <option value="gemini-1.5-pro">Gemini 1.5 Pro (Akurasi Tinggi untuk Detail Kompleks)</option>
+        </select>
+        <p class="text-[10px] text-slate-400 mt-1.5">
+          *Jika model 2.0 Flash terkena batas limit (Eror 429), silakan beralih ke <strong>Gemini 1.5 Flash</strong> untuk stabilitas lebih baik.
+        </p>
+      </div>
     </div>
   </div>
 
@@ -310,21 +329,26 @@
   // Silakan ganti URL Apps Script Anda di sini apabila ada pembaruan sheet
   const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby1TvnrsDXFlUdGP9OF_liECGm8wM3FNG3U-GbyniTHY4GbWMbtRat4auusV2Rlh2QUyQ/exec";
 
-  // Inisialisasi API Key kosong demi keamanan repositori Github
+  // Konfigurasi Variabel AI Utama
   let GEMINI_API_KEY = "";
+  let GEMINI_MODEL = localStorage.getItem("custom_gemini_model") || "gemini-2.0-flash";
 
-  // Membaca API Key dari localStorage jika sudah pernah diinput sebelumnya
+  // Membaca konfigurasi awal
   function loadApiKey() {
     const savedKey = localStorage.getItem("custom_gemini_api_key");
     const indicator = document.getElementById("keyIndicator");
+    
+    // Sinkronisasi status dropdown model
+    document.getElementById("modelSelect").value = GEMINI_MODEL;
+
     if (savedKey) {
       GEMINI_API_KEY = savedKey;
       document.getElementById("apiKeyInput").value = savedKey;
-      indicator.className = "text-emerald-500";
+      indicator.className = "text-emerald-500 font-bold";
       indicator.innerText = "● Aktif";
     } else {
       GEMINI_API_KEY = "";
-      indicator.className = "text-rose-500 animate-pulse";
+      indicator.className = "text-rose-500 animate-pulse font-bold";
       indicator.innerText = "● Perlu API Key";
     }
   }
@@ -338,7 +362,7 @@
     const val = document.getElementById("apiKeyInput").value.trim();
     if (val) {
       localStorage.setItem("custom_gemini_api_key", val);
-      alert("API Key berhasil disimpan ke penyimpanan lokal Anda!");
+      alert("API Key berhasil disimpan di penyimpanan lokal browser!");
       loadApiKey();
       toggleSettings();
     } else {
@@ -346,6 +370,13 @@
       alert("Kunci dihapus.");
       loadApiKey();
     }
+  }
+
+  function saveModel() {
+    const select = document.getElementById("modelSelect");
+    GEMINI_MODEL = select.value;
+    localStorage.setItem("custom_gemini_model", GEMINI_MODEL);
+    console.log("Model dialihkan ke:", GEMINI_MODEL);
   }
 
   // Target Kalori Standar (Bisa diperbarui dengan kalkulator)
@@ -457,7 +488,6 @@
   async function uploadImage() {
     const statusDiv = document.getElementById("uploadStatus");
     
-    // Validasi keberadaan API Key di aplikasi client
     if (!GEMINI_API_KEY) {
       alert("API Key Anda belum dikonfigurasi. Silakan klik tombol '⚙️ API Key' di pojok kanan atas untuk memasukkan kunci Anda secara aman.");
       toggleSettings();
@@ -476,9 +506,9 @@
       statusDiv.innerHTML = `<span class="animate-pulse">🤖 Menghubungi Server Gemini & menganalisis tekstur makanan...</span>`;
 
       const base64 = await fileToBase64(file);
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+      // Dinamis menggunakan model pilihan user (misalnya gemini-1.5-flash jika gemini-2.0-flash limit)
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
 
-      // Menggunakan penulisan camelCase "inlineData" & "mimeType" yang diwajibkan oleh Google
       const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -514,6 +544,9 @@ Berikan estimasi kalori masakan yang paling mendekati dan logis.`
       });
 
       if (!response.ok) {
+        if (response.status === 429) {
+          throw new Error("Batas kuota akses tercapai (Terlalu cepat/banyak pengiriman). Silakan buka ikon '⚙️ API Key' di kanan atas lalu ganti model menjadi 'Gemini 1.5 Flash' sebagai alternatif.");
+        }
         throw new Error(`Koneksi AI Gagal (Status: ${response.status}). Periksa kembali keaktifan API Key Anda.`);
       }
 
@@ -560,7 +593,7 @@ Berikan estimasi kalori masakan yang paling mendekati dan logis.`
       loadMeals();
     } catch (err) {
       console.error(err);
-      statusDiv.innerHTML = `<span class="text-rose-500">❌ Error: ${err.message}. Pastikan koneksi lancar dan API Key Anda valid.</span>`;
+      statusDiv.innerHTML = `<span class="text-rose-500">❌ Error: ${err.message}</span>`;
     }
   }
 
