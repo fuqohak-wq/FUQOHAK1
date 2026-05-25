@@ -74,7 +74,7 @@
       <button
         onclick="toggleSettings()"
         class="btn-premium bg-slate-200 hover:bg-slate-300 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200 px-4 py-3 rounded-2xl font-bold text-sm shadow-sm flex items-center gap-2">
-        ⚙️ API Key
+        ⚙️ API Key <span id="keyIndicator" class="text-rose-500">●</span>
       </button>
       <button
         onclick="toggleTheme()"
@@ -84,17 +84,17 @@
     </div>
   </div>
 
-  <!-- HIDDEN API KEY CONFIGURATION -->
+  <!-- HIDDEN API KEY CONFIGURATION (Sangat penting agar aman dari Github) -->
   <div id="settingsPanel" class="hidden bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-3xl p-6 mb-8 shadow-xl transition-all duration-300">
     <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-2">🔑 Pengaturan Gemini API Key</h3>
     <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">
-      Masukkan API Key Gemini Anda dari Google AI Studio di bawah ini.
+      API Key disimpan secara lokal di browser Anda dan aman dari pemindaian otomatis GitHub. Dapatkan kunci Anda secara gratis melalui Google AI Studio.
     </p>
     <div class="flex flex-col sm:flex-row gap-3">
       <input 
         type="password" 
         id="apiKeyInput" 
-        placeholder="Masukkan API Key Gemini Anda..." 
+        placeholder="Masukkan API Key Gemini (AIzaSy...) Anda di sini..." 
         class="flex-1 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white"
       />
       <button 
@@ -139,7 +139,7 @@
   <!-- INTERACTIVE ZONE (UPLOADER & TOOLS) -->
   <div class="grid lg:grid-cols-3 gap-8 mb-8">
     
-    <!-- AI FOOD ANALYZER CARD (2/3 width on desktop) -->
+    <!-- AI FOOD ANALYZER CARD -->
     <div class="lg:col-span-2 bg-white dark:bg-slate-900 rounded-[32px] p-6 md:p-8 shadow-xl border border-slate-100 dark:border-slate-800 transition-all">
       <div class="flex items-center gap-3 mb-3">
         <span class="text-3xl">📸</span>
@@ -195,7 +195,7 @@
           </div>
         </div>
         <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2.5 mt-4 overflow-hidden">
-          <div id="calProgressBar" class="bg-gradient-to-r from-blue-500 to-indigo-600 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+          <div id="calProgressBar" class="bg-gradient-to-r from-blue-50 to-indigo-600 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
         </div>
       </div>
 
@@ -310,19 +310,47 @@
   // Silakan ganti URL Apps Script Anda di sini apabila ada pembaruan sheet
   const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby1TvnrsDXFlUdGP9OF_liECGm8wM3FNG3U-GbyniTHY4GbWMbtRat4auusV2Rlh2QUyQ/exec";
 
-  // Konfigurasi API Key bawaan
-  let GEMINI_API_KEY = "AIzaSyAbVSuICJjm1J0xD07awP7JuRxyEhx-l9U";
+  // Inisialisasi API Key kosong demi keamanan repositori Github
+  let GEMINI_API_KEY = "";
 
-  // Memuat API Key kustom jika ada di localStorage
-  if (localStorage.getItem("custom_gemini_api_key")) {
-    GEMINI_API_KEY = localStorage.getItem("custom_gemini_api_key");
-    document.getElementById("apiKeyInput").value = GEMINI_API_KEY;
+  // Membaca API Key dari localStorage jika sudah pernah diinput sebelumnya
+  function loadApiKey() {
+    const savedKey = localStorage.getItem("custom_gemini_api_key");
+    const indicator = document.getElementById("keyIndicator");
+    if (savedKey) {
+      GEMINI_API_KEY = savedKey;
+      document.getElementById("apiKeyInput").value = savedKey;
+      indicator.className = "text-emerald-500";
+      indicator.innerText = "● Aktif";
+    } else {
+      GEMINI_API_KEY = "";
+      indicator.className = "text-rose-500 animate-pulse";
+      indicator.innerText = "● Perlu API Key";
+    }
+  }
+
+  function toggleSettings() {
+    const panel = document.getElementById("settingsPanel");
+    panel.classList.toggle("hidden");
+  }
+
+  function saveApiKey() {
+    const val = document.getElementById("apiKeyInput").value.trim();
+    if (val) {
+      localStorage.setItem("custom_gemini_api_key", val);
+      alert("API Key berhasil disimpan ke penyimpanan lokal Anda!");
+      loadApiKey();
+      toggleSettings();
+    } else {
+      localStorage.removeItem("custom_gemini_api_key");
+      alert("Kunci dihapus.");
+      loadApiKey();
+    }
   }
 
   // Target Kalori Standar (Bisa diperbarui dengan kalkulator)
   let targetCalories = 2100;
 
-  // Koleksi Kata-kata Mutiara, Kedisiplinan, & Kesehatan
   const quotes = [
     "Disiplin kecil setiap hari akan membentuk masa depan besar.",
     "Tubuh sehat membantu ibadah lebih kuat dan produktivitas melesat.",
@@ -356,24 +384,6 @@
     "Kekuatan spiritual yang hebat membutuhkan kendaraan fisik yang kokoh dan sehat.",
     "Hari esok yang gemilang dibangun dari keputusan disiplin detik demi detik hari ini."
   ];
-
-  function toggleSettings() {
-    const panel = document.getElementById("settingsPanel");
-    panel.classList.toggle("hidden");
-  }
-
-  function saveApiKey() {
-    const val = document.getElementById("apiKeyInput").value.trim();
-    if (val) {
-      localStorage.setItem("custom_gemini_api_key", val);
-      GEMINI_API_KEY = val;
-      alert("API Key berhasil disimpan!");
-      toggleSettings();
-    } else {
-      localStorage.removeItem("custom_gemini_api_key");
-      alert("Kembali menggunakan API Key default.");
-    }
-  }
 
   function displayFileName() {
     const input = document.getElementById("imageInput");
@@ -429,7 +439,6 @@
     });
   }
 
-  // Ekstraksi JSON yang diperkuat terhadap gangguan tag markdown
   function extractJsonFromString(str) {
     try {
       let cleaned = str.replace(/```json/gi, "").replace(/```/g, "").trim();
@@ -447,6 +456,14 @@
 
   async function uploadImage() {
     const statusDiv = document.getElementById("uploadStatus");
+    
+    // Validasi keberadaan API Key di aplikasi client
+    if (!GEMINI_API_KEY) {
+      alert("API Key Anda belum dikonfigurasi. Silakan klik tombol '⚙️ API Key' di pojok kanan atas untuk memasukkan kunci Anda secara aman.");
+      toggleSettings();
+      return;
+    }
+
     try {
       const input = document.getElementById("imageInput");
       const file = input.files[0];
@@ -459,9 +476,9 @@
       statusDiv.innerHTML = `<span class="animate-pulse">🤖 Menghubungi Server Gemini & menganalisis tekstur makanan...</span>`;
 
       const base64 = await fileToBase64(file);
-      // Endpoint resmi untuk gemini-2.0-flash
       const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
 
+      // Menggunakan penulisan camelCase "inlineData" & "mimeType" yang diwajibkan oleh Google
       const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -524,17 +541,15 @@ Berikan estimasi kalori masakan yang paling mendekati dan logis.`
         water_ml: Number(ai.water_ml || 0)
       };
 
-      // Upayakan penyimpanan ke Google Sheet
       try {
         await fetch(APPS_SCRIPT_URL, {
           method: "POST",
           body: JSON.stringify(payload)
         });
       } catch (sheetError) {
-        console.warn("Sinkronisasi Google Sheet terkendala, data tetap ditampilkan di lokal:", sheetError);
+        console.warn("Sinkronisasi Google Sheet terkendala, data tetap disimpan secara lokal:", sheetError);
       }
 
-      // Simpan sementara di memori lokal agar visual langsung terupdate tanpa menunggu respon sheet
       let localMeals = JSON.parse(localStorage.getItem("local_meals") || "[]");
       localMeals.push(payload);
       localStorage.setItem("local_meals", JSON.stringify(localMeals));
@@ -708,6 +723,8 @@ Berikan estimasi kalori masakan yang paling mendekati dan logis.`
     loadMeals();
   }
 
+  // Inisialisasi awal aplikasi
+  loadApiKey();
   setGreeting();
   setQuote();
   updateClock();
