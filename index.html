@@ -26,16 +26,12 @@
       position: relative;
       overflow: hidden;
     }
-    .btn-premium:hover:not(:disabled) {
+    .btn-premium:hover {
       transform: translateY(-2px);
       box-shadow: 0 12px 24px -6px rgba(59, 130, 246, 0.5);
     }
-    .btn-premium:active:not(:disabled) {
+    .btn-premium:active {
       transform: translateY(1px);
-    }
-    .btn-premium:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
     }
     .card-premium {
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -92,7 +88,7 @@
   <div id="settingsPanel" class="hidden bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-3xl p-6 mb-8 shadow-xl transition-all duration-300">
     <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-2">🔑 Pengaturan Gemini API Key</h3>
     <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">
-      Masukkan API Key Gemini Anda dari Google AI Studio di sini. Kunci ini akan disimpan secara lokal di browser Anda.
+      Masukkan API Key Gemini Anda dari Google AI Studio di bawah ini.
     </p>
     <div class="flex flex-col sm:flex-row gap-3">
       <input 
@@ -174,7 +170,6 @@
 
       <div class="flex flex-col sm:flex-row gap-3">
         <button
-          id="analyzeBtn"
           onclick="uploadImage()"
           class="btn-premium flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-4 rounded-2xl text-base font-bold shadow-lg">
           🔍 Analisis Sekarang
@@ -182,7 +177,6 @@
       </div>
 
       <div id="uploadStatus" class="mt-5 text-sm font-semibold text-blue-600 dark:text-blue-400 flex items-center gap-2"></div>
-      <div id="aiAnalysisBox" class="hidden mt-6 bg-indigo-50 dark:bg-slate-800 border border-indigo-200 dark:border-slate-700 rounded-3xl p-5"></div>
     </div>
 
     <!-- UTILITY PANEL: MOOD, WATER TRACKER & TARGETS -->
@@ -313,11 +307,11 @@
 </div>
 
 <script>
-  // Ganti URL Apps Script Anda di sini apabila ada pembaruan sheet
+  // Silakan ganti URL Apps Script Anda di sini apabila ada pembaruan sheet
   const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby1TvnrsDXFlUdGP9OF_liECGm8wM3FNG3U-GbyniTHY4GbWMbtRat4auusV2Rlh2QUyQ/exec";
 
-  // Konfigurasi API Key bawaan kosong demi keamanan repositori publik
-  let GEMINI_API_KEY = "";
+  // Konfigurasi API Key bawaan
+  let GEMINI_API_KEY = "AIzaSyAbVSuICJjm1J0xD07awP7JuRxyEhx-l9U";
 
   // Memuat API Key kustom jika ada di localStorage
   if (localStorage.getItem("custom_gemini_api_key")) {
@@ -356,7 +350,7 @@
     "Setiap pagi membawa peluang baru untuk menuliskan kisah hidup yang spektakuler.",
     "Fokus pada proses kebaikan, biarkan hasil akhir menjadi hadiah indah dari kedisiplinan.",
     "Kesehatan mental dimulai saat Anda mengikhlaskan hal-hari di luar kendali Anda.",
-    "Kejayaan diri diraih lewat pertarungan menaklukkan kemalasan diri sendiri.",
+    "Keberayaan diri diraih lewat pertarungan menaklukkan kemalasan diri sendiri.",
     "Setiap tegukan air murni meremajakan sel-sel impian Anda untuk terus berjuang.",
     "Energi yang optimal lahir dari istirahat yang cukup dan asupan yang seimbang.",
     "Kekuatan spiritual yang hebat membutuhkan kendaraan fisik yang kokoh dan sehat.",
@@ -377,8 +371,7 @@
       toggleSettings();
     } else {
       localStorage.removeItem("custom_gemini_api_key");
-      GEMINI_API_KEY = "";
-      alert("API Key dikosongkan.");
+      alert("Kembali menggunakan API Key default.");
     }
   }
 
@@ -436,49 +429,24 @@
     });
   }
 
+  // Ekstraksi JSON yang diperkuat terhadap gangguan tag markdown
   function extractJsonFromString(str) {
     try {
       let cleaned = str.replace(/```json/gi, "").replace(/```/g, "").trim();
-      
       const start = cleaned.indexOf('{');
       const end = cleaned.lastIndexOf('}');
       if (start !== -1 && end !== -1 && end > start) {
-        const jsonOnly = cleaned.substring(start, end + 1);
-        return JSON.parse(jsonOnly);
+        cleaned = cleaned.substring(start, end + 1);
       }
       return JSON.parse(cleaned);
     } catch (e) {
       console.error("Format balasan AI tidak sesuai standar JSON:", str);
-      
-      return {
-        "food_detected": "Hidangan Terdeteksi (Estimasi)",
-        "calories": 450,
-        "protein": 15,
-        "fat": 12,
-        "carbs": 50,
-        "drink_detected": "Air Putih",
-        "water_ml": 250,
-        "health_score": 5,
-        "warning": "Data default digunakan karena kegagalan pemrosesan format",
-        "recommendation": "Silakan kirim ulang gambar dengan kondisi cahaya lebih baik",
-        "activity_recommendation": "Aktivitas fisik sedang selama 20 menit",
-        "ai_summary": "Identifikasi otomatis mengalami gangguan teknis dalam membaca respons mentah."
-      };
+      throw new Error("Gagal mengekstrak struktur data nutrisi.");
     }
   }
 
   async function uploadImage() {
     const statusDiv = document.getElementById("uploadStatus");
-    const analyzeBtn = document.getElementById("analyzeBtn");
-
-    // Validasi keberadaan API Key sebelum melakukan pengiriman ke server
-    if (!GEMINI_API_KEY) {
-      alert("Kunci API belum diatur. Silakan klik tombol '⚙️ API Key' di kanan atas untuk memasukkan kunci Gemini Anda.");
-      statusDiv.innerHTML = `<span class="text-rose-500">❌ Error: API Key kosong.</span>`;
-      toggleSettings();
-      return;
-    }
-
     try {
       const input = document.getElementById("imageInput");
       const file = input.files[0];
@@ -488,12 +456,10 @@
         return;
       }
 
-      // Kunci tombol agar tidak bisa diklik berkali-kali selama memuat (Menghindari Error 429)
-      analyzeBtn.disabled = true;
-      analyzeBtn.innerText = "⏳ Sedang Menganalisis...";
-      statusDiv.innerHTML = `<span class="animate-pulse">🤖 Menghubungi Server Gemini & menganalisis gambar...</span>`;
+      statusDiv.innerHTML = `<span class="animate-pulse">🤖 Menghubungi Server Gemini & menganalisis tekstur makanan...</span>`;
 
       const base64 = await fileToBase64(file);
+      // Endpoint resmi untuk gemini-2.0-flash
       const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
 
       const response = await fetch(endpoint, {
@@ -504,64 +470,23 @@
             {
               parts: [
                 {
-                  text: `
-Anda adalah AI Nutritionist Premium.
-
-Analisa gambar makanan/minuman ini secara detail.
-
-WAJIB:
-- Identifikasi makanan
-- Estimasi kalori
-- Protein
-- Lemak
-- Karbohidrat
-- Kandungan gula
-- Apakah sehat atau tidak
-- Berikan skor kesehatan 1-10
-- Berikan saran profesional
-- Berikan warning jika terlalu berminyak/manis
-- Berikan rekomendasi aktivitas
-
-Balas HANYA JSON VALID.
-
-Format:
-
+                  text: `Analisis makanan pada gambar ini dengan presisi tinggi. 
+Keluarkan HANYA output JSON valid tanpa bungkus Markdown (seperti \`\`\`json).
+Format struktur JSON wajib seperti di bawah ini secara presisi:
 {
-  "food_detected": "Nasi goreng ayam",
-  "calories": 650,
-  "protein": 25,
-  "fat": 22,
-  "carbs": 70,
-  "sugar": 12,
-  "health_score": 7,
-  "is_healthy": true,
-  "warning": "Kandungan minyak agak tinggi",
-  "recommendation": "Perbanyak sayur dan minum air putih",
-  "activity_recommendation": "Jalan kaki 25 menit",
-  "ai_summary": "Makanan cukup baik untuk energi namun lemak perlu dikontrol.",
-  "drink_detected": "Es teh",
-  "water_ml": 200
-}
-
-ATURAN TOLERANSI TINGGI:
-1. Meskipun gambar buram, tidak jelas, gelap, atau terdapat banyak benda non-makanan (alat makan, manusia, pemandangan, ruangan komputer, dll), Anda dilarang keras menolak gambar ini.
-2. Jika objek makanan sangat samar atau sulit diidentifikasi, lakukan PREDIKSI/ESTIMASI logis terbaik berdasarkan bentuk, warna, atau konteks lingkungan terdekat. Jika tidak ada petunjuk sama sekali, kategorikan sebagai "Camilan Ringan / Hidangan Campur" dengan asumsi nilai gizi sedang yang aman.
-3. Selalu keluarkan data dalam bentuk JSON tanpa penjelasan teks lain di luar struktur objek JSON. 
-
-Keluarkan HANYA output JSON valid tanpa bungkus Markdown. Format struktur JSON wajib seperti di bawah ini secara presisi:
-{
-  "food_detected": "Nama makanan (atau estimasi tebakan terbaik Anda)",
+  "food_detected": "Nama Makanan",
   "calories": 350,
   "protein": 15,
   "fat": 10,
   "carbs": 40,
   "drink_detected": "Nama Minuman / Air Putih jika ada",
   "water_ml": 250
-}`
+}
+Berikan estimasi kalori masakan yang paling mendekati dan logis.`
                 },
                 {
-                  inline_data: {
-                    mime_type: file.type,
+                  inlineData: {
+                    mimeType: file.type,
                     data: base64
                   }
                 }
@@ -578,4 +503,219 @@ Keluarkan HANYA output JSON valid tanpa bungkus Markdown. Format struktur JSON w
       const result = await response.json();
       
       if (!result.candidates || result.candidates.length === 0) {
-        throw new Error("AI tidak b
+        throw new Error("API tidak mengembalikan analisis yang valid.");
+      }
+
+      const rawText = result.candidates[0].content.parts[0].text;
+      const ai = extractJsonFromString(rawText);
+
+      statusDiv.innerHTML = `<span class="text-emerald-500">✅ Berhasil mendeteksi: ${ai.food_detected}. Menyinkronkan ke basis data...</span>`;
+
+      const payload = {
+        action: "addMeal",
+        date: new Date().toLocaleDateString("id-ID"),
+        image_url: "",
+        food_detected: ai.food_detected,
+        calories: Number(ai.calories || 0),
+        protein: Number(ai.protein || 0),
+        fat: Number(ai.fat || 0),
+        carbs: Number(ai.carbs || 0),
+        drink_detected: ai.drink_detected || "Tidak terdeteksi",
+        water_ml: Number(ai.water_ml || 0)
+      };
+
+      // Upayakan penyimpanan ke Google Sheet
+      try {
+        await fetch(APPS_SCRIPT_URL, {
+          method: "POST",
+          body: JSON.stringify(payload)
+        });
+      } catch (sheetError) {
+        console.warn("Sinkronisasi Google Sheet terkendala, data tetap ditampilkan di lokal:", sheetError);
+      }
+
+      // Simpan sementara di memori lokal agar visual langsung terupdate tanpa menunggu respon sheet
+      let localMeals = JSON.parse(localStorage.getItem("local_meals") || "[]");
+      localMeals.push(payload);
+      localStorage.setItem("local_meals", JSON.stringify(localMeals));
+
+      statusDiv.innerHTML = "🎉 Analisis berhasil disimpan dan dashboard diperbarui!";
+      document.getElementById("imageInput").value = "";
+      document.getElementById("fileNameDisplay").innerText = "Klik di sini atau seret foto makanan Anda";
+      loadMeals();
+    } catch (err) {
+      console.error(err);
+      statusDiv.innerHTML = `<span class="text-rose-500">❌ Error: ${err.message}. Pastikan koneksi lancar dan API Key Anda valid.</span>`;
+    }
+  }
+
+  async function loadMeals() {
+    let sheetMeals = [];
+    try {
+      const response = await fetch(APPS_SCRIPT_URL + "?action=getMeals");
+      const json = await response.json();
+      const rows = json.data;
+
+      if (rows && rows.length >= 2) {
+        const headers = rows[0];
+        sheetMeals = rows.slice(1).map(row => {
+          let obj = {};
+          headers.forEach((header, index) => {
+            obj[header] = row[index];
+          });
+          return obj;
+        });
+      }
+    } catch (err) {
+      console.warn("Menggunakan database lokal karena koneksi eksternal belum siap.", err);
+      sheetMeals = JSON.parse(localStorage.getItem("local_meals") || "[]");
+    }
+
+    if (sheetMeals.length === 0) {
+      document.getElementById("mealsContainer").innerHTML = `
+        <div class="bg-white dark:bg-slate-900 rounded-3xl p-10 shadow-sm border border-slate-100 dark:border-slate-800 text-center col-span-full text-slate-400">
+          Belum ada data hidangan hari ini. Mulai dengan mengunggah foto hidangan pertama Anda di atas!
+        </div>
+      `;
+      renderStats([]);
+      renderInsight([]);
+      return;
+    }
+
+    renderMeals(sheetMeals);
+    renderStats(sheetMeals);
+    renderInsight(sheetMeals);
+  }
+
+  function renderMeals(meals) {
+    const container = document.getElementById("mealsContainer");
+    const reversedMeals = [...meals].reverse();
+    container.innerHTML = reversedMeals.map(meal => `
+      <div class="bg-white dark:bg-slate-900 rounded-[28px] overflow-hidden border border-slate-100 dark:border-slate-800 card-premium shadow-sm">
+        <div class="w-full h-40 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-indigo-950/30 flex items-center justify-center text-5xl">
+          🍱
+        </div>
+        <div class="p-6">
+          <span class="inline-block bg-blue-50 dark:bg-slate-800 text-blue-600 dark:text-blue-400 text-xs px-3 py-1.5 rounded-full font-bold mb-3">
+            📅 ${meal.date || "Hari Ini"}
+          </span>
+          <h3 class="text-xl font-bold text-slate-800 dark:text-white mb-4 line-clamp-1">
+            ${meal.food_detected || "-"}
+          </h3>
+          <div class="grid grid-cols-2 gap-3 text-sm text-slate-600 dark:text-slate-300">
+            <div class="bg-slate-50 dark:bg-slate-950 p-3 rounded-2xl">
+              <span class="block text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Energi</span>
+              <strong class="text-slate-800 dark:text-white text-base">${meal.calories || 0} kcal</strong>
+            </div>
+            <div class="bg-slate-50 dark:bg-slate-950 p-3 rounded-2xl">
+              <span class="block text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Protein</span>
+              <strong class="text-blue-600 dark:text-blue-400 text-base">${meal.protein || 0} g</strong>
+            </div>
+            <div class="bg-slate-50 dark:bg-slate-950 p-3 rounded-2xl col-span-2">
+              <span class="block text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Minuman / Hidrasi</span>
+              <strong class="text-slate-800 dark:text-white text-xs line-clamp-1">${meal.drink_detected || "Air Putih"} (${meal.water_ml || 0} ml)</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    `).join("");
+  }
+
+  function renderStats(meals) {
+    let calories = 0;
+    let protein = 0;
+    let water = localStorage.getItem("manual_water_ml") ? Number(localStorage.getItem("manual_water_ml")) : 0;
+
+    meals.forEach(meal => {
+      calories += Number(meal.calories || 0);
+      protein += Number(meal.protein || 0);
+      water += Number(meal.water_ml || 0);
+    });
+
+    document.getElementById("totalCalories").innerText = calories + " kcal";
+    document.getElementById("totalProtein").innerText = protein + " g";
+    document.getElementById("totalWater").innerText = water + " ml";
+    document.getElementById("mealCount").innerText = meals.length;
+
+    const percent = Math.min(Math.round((calories / targetCalories) * 100), 100);
+    document.getElementById("calPercent").innerText = percent + "%";
+    document.getElementById("calProgressBar").style.width = percent + "%";
+
+    if (percent >= 100) {
+      document.getElementById("progressRing").innerText = "✅";
+    } else {
+      document.getElementById("progressRing").innerText = "⚡";
+    }
+  }
+
+  function renderInsight(meals) {
+    let calories = 0;
+    let protein = 0;
+    let water = localStorage.getItem("manual_water_ml") ? Number(localStorage.getItem("manual_water_ml")) : 0;
+
+    meals.forEach(meal => {
+      calories += Number(meal.calories || 0);
+      protein += Number(meal.protein || 0);
+      water += Number(meal.water_ml || 0);
+    });
+
+    let insight = "💡 Status: Nutrisi harian Anda saat ini terpantau seimbang dan berada dalam koridor ideal.";
+    if (water < 1800) {
+      insight = "💧 Status Hidrasi: Tubuh Anda membutuhkan lebih banyak cairan untuk menyeimbangkan metabolisme. Ambil segelas air putih hangat sekarang!";
+    }
+    if (protein < 60) {
+      insight = "🍗 Status Protein: Kadar asam amino hari ini masih di bawah ideal. Pertimbangkan menambah porsi protein pada hidangan selanjutnya.";
+    }
+    if (calories > targetCalories) {
+      insight = "⚠️ Kalori Melampaui Batas: Asupan kalori Anda telah melewati target harian. Direkomendasikan melakukan aktivitas fisik ringan malam ini.";
+    }
+
+    document.getElementById("insight").innerText = insight;
+  }
+
+  function addWater(amount) {
+    let current = localStorage.getItem("manual_water_ml") ? Number(localStorage.getItem("manual_water_ml")) : 0;
+    localStorage.setItem("manual_water_ml", current + amount);
+    loadMeals();
+  }
+
+  function resetWater() {
+    localStorage.setItem("manual_water_ml", 0);
+    loadMeals();
+  }
+
+  function selectMood(emoji) {
+    const advice = {
+      "😃": "Senang sekali melihat Anda berenergi! Salurkan semangat ini ke dalam pencapaian produktif hari ini.",
+      "🔥": "Semangat membara! Tetap fokus pada prioritas utama dan selesaikan tantangan dengan elegan.",
+      "🧘": "Sikap tenang mendatangkan kebijaksanaan. Jaga fokus pernapasan Anda agar pikiran tetap tajam.",
+      "😴": "Merasa lelah adalah hal manusiawi. Pastikan malam ini Anda mendapatkan istirahat berkualitas 7-8 jam.",
+      "😔": "Setiap hari memiliki rintangannya sendiri. Tarik napas dalam, mulailah langkah kecil, Anda jauh lebih kuat dari apa yang Anda rasakan."
+    };
+    document.getElementById("moodAdvice").innerText = advice[emoji] || "";
+  }
+
+  function calculateTDEE() {
+    const w = Number(document.getElementById("calcWeight").value);
+    const h = Number(document.getElementById("calcHeight").value);
+    if (!w || !h) {
+      alert("Masukkan berat dan tinggi badan dengan benar.");
+      return;
+    }
+    const bmr = Math.round(88.362 + (13.397 * w) + (4.799 * h) - (5.677 * 25));
+    targetCalories = Math.round(bmr * 1.375);
+    document.getElementById("calcResult").innerText = `Kebutuhan energi harian Anda: ~${targetCalories} kcal. Target kalori dashboard otomatis disesuaikan!`;
+    loadMeals();
+  }
+
+  setGreeting();
+  setQuote();
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  loadMeals();
+  setInterval(loadMeals, 45000);
+</script>
+
+</body>
+</html>
