@@ -177,6 +177,9 @@
       </div>
 
       <div id="uploadStatus" class="mt-5 text-sm font-semibold text-blue-600 dark:text-blue-400 flex items-center gap-2"></div>
+      <div id="aiAnalysisBox"
+class="hidden mt-6 bg-indigo-50 dark:bg-slate-800 border border-indigo-200 dark:border-slate-700 rounded-3xl p-5">
+</div>
     </div>
 
     <!-- UTILITY PANEL: MOOD, WATER TRACKER & TARGETS -->
@@ -311,7 +314,7 @@
   const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby1TvnrsDXFlUdGP9OF_liECGm8wM3FNG3U-GbyniTHY4GbWMbtRat4auusV2Rlh2QUyQ/exec";
 
   // Konfigurasi API Key bawaan
-  let GEMINI_API_KEY = "AIzaSyAbVSuICJjm1J0xD07awP7JuRxyEhx-l9U";
+  let GEMINI_API_KEY = "AIzaSyCMT5afpCusAjdAxt5AWxjvV262pHXNx9E";
 
   // Memuat API Key kustom jika ada di localStorage
   if (localStorage.getItem("custom_gemini_api_key")) {
@@ -482,7 +485,45 @@
             {
               parts: [
                 {
-                  text: `Tugas Anda adalah mendeteksi makanan atau minuman dari gambar yang diberikan. 
+                  text: `
+Anda adalah AI Nutritionist Premium.
+
+Analisa gambar makanan/minuman ini secara detail.
+
+WAJIB:
+- Identifikasi makanan
+- Estimasi kalori
+- Protein
+- Lemak
+- Karbohidrat
+- Kandungan gula
+- Apakah sehat atau tidak
+- Berikan skor kesehatan 1-10
+- Berikan saran profesional
+- Berikan warning jika terlalu berminyak/manis
+- Berikan rekomendasi aktivitas
+
+Balas HANYA JSON VALID.
+
+Format:
+
+{
+  "food_detected": "Nasi goreng ayam",
+  "calories": 650,
+  "protein": 25,
+  "fat": 22,
+  "carbs": 70,
+  "sugar": 12,
+  "health_score": 7,
+  "is_healthy": true,
+  "warning": "Kandungan minyak agak tinggi",
+  "recommendation": "Perbanyak sayur dan minum air putih",
+  "activity_recommendation": "Jalan kaki 25 menit",
+  "ai_summary": "Makanan cukup baik untuk energi namun lemak perlu dikontrol.",
+  "drink_detected": "Es teh",
+  "water_ml": 200
+}
+` 
 
 ATURAN TOLERANSI TINGGI:
 1. Meskipun gambar buram, tidak jelas, gelap, atau terdapat banyak benda non-makanan (alat makan, manusia, pemandangan, ruangan komputer, dll), Anda dilarang keras menolak gambar ini.
@@ -519,6 +560,58 @@ Keluarkan HANYA output JSON valid tanpa bungkus Markdown. Format struktur JSON w
       const result = await response.json();
       const rawText = result.candidates[0].content.parts[0].text;
       const ai = extractJsonFromString(rawText);
+  document.getElementById("aiAnalysisBox").classList.remove("hidden");
+
+document.getElementById("aiAnalysisBox").innerHTML = `
+  <h3 class="text-xl font-black mb-4 text-indigo-700 dark:text-indigo-300">
+    🤖 Analisa AI Premium
+  </h3>
+
+  <div class="space-y-3 text-sm">
+
+    <div>
+      <strong>🍽️ Makanan:</strong>
+      ${ai.food_detected}
+    </div>
+
+    <div>
+      <strong>🔥 Kalori:</strong>
+      ${ai.calories} kcal
+    </div>
+
+    <div>
+      <strong>💪 Protein:</strong>
+      ${ai.protein} g
+    </div>
+
+    <div>
+      <strong>🩺 Skor Kesehatan:</strong>
+      ${ai.health_score}/10
+    </div>
+
+    <div>
+      <strong>⚠️ Warning:</strong>
+      ${ai.warning}
+    </div>
+
+    <div>
+      <strong>💡 Rekomendasi:</strong>
+      ${ai.recommendation}
+    </div>
+
+    <div>
+      <strong>🏃 Aktivitas:</strong>
+      ${ai.activity_recommendation}
+    </div>
+
+    <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl mt-3">
+      <strong>🧠 Insight AI:</strong><br>
+      ${ai.ai_summary}
+    </div>
+
+  </div>
+`;
+  
 
       statusDiv.innerHTML = `<span class="text-emerald-500">✅ Berhasil mendeteksi: ${ai.food_detected}. Mengirim data ke lembar kerja...</span>`;
 
