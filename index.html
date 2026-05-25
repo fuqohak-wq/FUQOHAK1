@@ -106,19 +106,19 @@
         </button>
       </div>
 
-      <!-- Fitur Pemilihan Model AI untuk Solusi Eror 429 -->
+      <!-- Pemilihan Model AI untuk Solusi Eror 404 / 429 -->
       <div class="border-t border-slate-100 dark:border-slate-700 pt-4">
-        <label class="block text-xs font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">🤖 Pilihan Model AI Cadangan</label>
+        <label class="block text-xs font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">🤖 Pilihan Model AI</label>
         <select 
           id="modelSelect" 
           onchange="saveModel()" 
           class="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white">
-          <option value="gemini-2.0-flash">Gemini 2.0 Flash (Default - Sangat Cepat)</option>
-          <option value="gemini-1.5-flash">Gemini 1.5 Flash (Sangat Stabil - Solusi jika sering Eror 429)</option>
-          <option value="gemini-1.5-pro">Gemini 1.5 Pro (Akurasi Tinggi untuk Detail Kompleks)</option>
+          <option value="gemini-1.5-flash">Gemini 1.5 Flash (Sangat Stabil / Sangat Direkomendasikan)</option>
+          <option value="gemini-2.0-flash">Gemini 2.0 Flash (Sangat Cepat - Jika didukung di wilayah Anda)</option>
+          <option value="gemini-1.5-pro">Gemini 1.5 Pro (Akurasi Tinggi)</option>
         </select>
         <p class="text-[10px] text-slate-400 mt-1.5">
-          *Jika model 2.0 Flash terkena batas limit (Eror 429), silakan beralih ke <strong>Gemini 1.5 Flash</strong> untuk stabilitas lebih baik.
+          *Jika Anda mendapatkan respon 404, gunakan pilihan default <strong>Gemini 1.5 Flash</strong> karena memiliki kompatibilitas global terbaik.
         </p>
       </div>
     </div>
@@ -331,14 +331,24 @@
 
   // Konfigurasi Variabel AI Utama
   let GEMINI_API_KEY = "";
-  let GEMINI_MODEL = localStorage.getItem("custom_gemini_model") || "gemini-2.0-flash";
+  let GEMINI_MODEL = "gemini-1.5-flash"; // Set default ke model yang paling stabil dan kompatibel secara global
 
-  // Membaca konfigurasi awal
+  const ALLOWED_MODELS = ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-1.5-pro"];
+
+  // Membaca konfigurasi awal secara aman
   function loadApiKey() {
     const savedKey = localStorage.getItem("custom_gemini_api_key");
+    const savedModel = localStorage.getItem("custom_gemini_model");
     const indicator = document.getElementById("keyIndicator");
+
+    // Validasi nilai model agar tidak kosong atau corrupt
+    if (savedModel && ALLOWED_MODELS.includes(savedModel)) {
+      GEMINI_MODEL = savedModel;
+    } else {
+      GEMINI_MODEL = "gemini-1.5-flash";
+      localStorage.setItem("custom_gemini_model", GEMINI_MODEL);
+    }
     
-    // Sinkronisasi status dropdown model
     document.getElementById("modelSelect").value = GEMINI_MODEL;
 
     if (savedKey) {
@@ -362,7 +372,7 @@
     const val = document.getElementById("apiKeyInput").value.trim();
     if (val) {
       localStorage.setItem("custom_gemini_api_key", val);
-      alert("API Key berhasil disimpan di penyimpanan lokal browser!");
+      alert("API Key berhasil disimpan!");
       loadApiKey();
       toggleSettings();
     } else {
@@ -374,9 +384,11 @@
 
   function saveModel() {
     const select = document.getElementById("modelSelect");
-    GEMINI_MODEL = select.value;
-    localStorage.setItem("custom_gemini_model", GEMINI_MODEL);
-    console.log("Model dialihkan ke:", GEMINI_MODEL);
+    if (ALLOWED_MODELS.includes(select.value)) {
+      GEMINI_MODEL = select.value;
+      localStorage.setItem("custom_gemini_model", GEMINI_MODEL);
+      console.log("Model dialihkan ke:", GEMINI_MODEL);
+    }
   }
 
   // Target Kalori Standar (Bisa diperbarui dengan kalkulator)
@@ -506,7 +518,7 @@
       statusDiv.innerHTML = `<span class="animate-pulse">🤖 Menghubungi Server Gemini & menganalisis tekstur makanan...</span>`;
 
       const base64 = await fileToBase64(file);
-      // Dinamis menggunakan model pilihan user (misalnya gemini-1.5-flash jika gemini-2.0-flash limit)
+      // Endpoint yang diformulasikan secara presisi untuk menghindari eror 404
       const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
 
       const response = await fetch(endpoint, {
@@ -544,10 +556,13 @@ Berikan estimasi kalori masakan yang paling mendekati dan logis.`
       });
 
       if (!response.ok) {
-        if (response.status === 429) {
-          throw new Error("Batas kuota akses tercapai (Terlalu cepat/banyak pengiriman). Silakan buka ikon '⚙️ API Key' di kanan atas lalu ganti model menjadi 'Gemini 1.5 Flash' sebagai alternatif.");
+        if (response.status === 404) {
+          throw new Error("Model yang dipilih tidak ditemukan (Eror 404). Silakan masuk ke pengaturan '⚙️ API Key' di pojok kanan atas, lalu pilih model 'Gemini 1.5 Flash' yang memiliki jangkauan wilayah paling stabil.");
         }
-        throw new Error(`Koneksi AI Gagal (Status: ${response.status}). Periksa kembali keaktifan API Key Anda.`);
+        if (response.status === 429) {
+          throw new Error("Batas kecepatan kuota terlampaui (Eror 429). Silakan tunggu 1 menit lalu coba kembali.");
+        }
+        throw new Error(`Koneksi AI Gagal (Status: ${response.status}). Periksa keaktifan API Key Anda.`);
       }
 
       const result = await response.json();
@@ -756,7 +771,7 @@ Berikan estimasi kalori masakan yang paling mendekati dan logis.`
     loadMeals();
   }
 
-  // Inisialisasi awal aplikasi
+  // Menjalankan inisialisasi awal sistem
   loadApiKey();
   setGreeting();
   setQuote();
