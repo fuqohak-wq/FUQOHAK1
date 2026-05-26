@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Food Nutrition Analyzer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>AI Food Nutrition Analyzer</h1>
+            <p>Unggah foto makanan/minuman Anda untuk analisis nutrisi akurat berbasis AI Gemini</p>
+        </header>
+
+        <main>
+            <div class="upload-section">
+                <div class="drop-zone" id="dropZone">
+                    <span class="drop-zone__prompt">Tarik file ke sini atau klik untuk memilih foto</span>
+                    <input type="file" id="imageInput" accept="image/*" class="drop-zone__input">
+                </div>
+                
+                <div class="preview-container" id="previewContainer" style="display: none;">
+                    <img id="imagePreview" src="" alt="Pratinjau Makanan">
+                </div>
+
+                <button id="uploadBtn" class="btn-primary">Mulai Analisis Gizi</button>
+            </div>
+
+            <div id="loading" class="loading-container" style="display: none;">
+                <div class="spinner"></div>
+                <p>Gemini AI sedang menganalisis kandungan makanan Anda...</p>
+            </div>
+
+            <div id="resultContainer" class="result-card" style="display: none;">
+                <!-- Hasil Analisis AI akan disuntikkan di sini via script.js -->
+            </div>
+        </main>
+
+        <footer>
+            <p>&copy; 2026 AI Food Analyzer - Didukung oleh Netlify & Google Gemini</p>
+        </footer>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

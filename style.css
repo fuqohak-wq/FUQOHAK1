@@ -1,0 +1,286 @@
+:root {
+    --primary-color: #2ec4b6;
+    --primary-dark: #0f9f90;
+    --bg-color: #f8f9fa;
+    --text-color: #2b2d42;
+    --card-bg: #ffffff;
+    --border-color: #e5e5e5;
+    --error-color: #e63946;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+    min-height: 100vh;
+}
+
+.container {
+    width: 100%;
+    max-width: 600px;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+header {
+    text-align: center;
+    padding: 10px 0;
+}
+
+header h1 {
+    color: var(--primary-dark);
+    font-size: 24px;
+    margin-bottom: 5px;
+}
+
+header p {
+    color: #6c757d;
+    font-size: 14px;
+}
+
+main {
+    background-color: var(--card-bg);
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+/* Upload & Dropzone Area */
+.upload-section {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.drop-zone {
+    border: 2px dashed var(--primary-color);
+    border-radius: 12px;
+    padding: 30px;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+    background-color: rgba(46, 196, 182, 0.02);
+}
+
+.drop-zone--over {
+    border-color: var(--primary-dark);
+    background-color: rgba(46, 196, 182, 0.08);
+}
+
+.drop-zone__prompt {
+    font-size: 14px;
+    color: #4a4e69;
+}
+
+.drop-zone__input {
+    display: none;
+}
+
+.preview-container {
+    width: 100%;
+    max-height: 250px;
+    overflow: hidden;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+}
+
+.preview-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-dark);
+}
+
+/* Loading Spinner */
+.loading-container {
+    text-align: center;
+    padding: 20px 0;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    border-left-color: var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 15px auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-container p {
+    font-size: 14px;
+    color: #555;
+}
+
+/* Result Card UI */
+.result-card {
+    border-top: 1px solid var(--border-color);
+    padding-top: 20px;
+    animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.result-header h2 {
+    font-size: 20px;
+    color: var(--text-color);
+}
+
+.accuracy-badge {
+    background-color: #e8f8f5;
+    color: var(--primary-dark);
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.calories-box {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    color: white;
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.calories-val {
+    display: block;
+    font-size: 36px;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.calories-lbl {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    opacity: 0.9;
+}
+
+.section-title {
+    font-size: 14px;
+    text-transform: uppercase;
+    color: #6c757d;
+    margin-bottom: 12px;
+    letter-spacing: 0.5px;
+}
+
+.macro-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.macro-item {
+    padding: 12px 8px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.macro-name {
+    display: block;
+    font-size: 11px;
+    color: #6c757d;
+    margin-bottom: 4px;
+}
+
+.macro-value {
+    font-weight: 700;
+    font-size: 15px;
+}
+
+.macro-carbs { background-color: #fff0f3; color: #ff4d6d; }
+.macro-protein { background-color: #eef1ff; color: #3f37c9; }
+.macro-fat { background-color: #fdf0d5; color: #7209b7; }
+
+.detail-list {
+    margin-bottom: 20px;
+    padding-left: 20px;
+}
+
+.detail-list li {
+    font-size: 14px;
+    margin-bottom: 6px;
+    color: #4a4a4a;
+}
+
+.health-note {
+    background-color: #f1f5f9;
+    border-left: 4px solid #64748b;
+    padding: 12px;
+    border-radius: 0 8px 8px 0;
+}
+
+.health-note strong {
+    font-size: 13px;
+    color: #334155;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.health-note p {
+    font-size: 13px;
+    color: #475569;
+    line-height: 1.5;
+}
+
+.error-msg {
+    color: var(--error-color);
+    background-color: #fff5f5;
+    border: 1px solid #ffe3e3;
+    padding: 15px;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+footer {
+    text-align: center;
+    font-size: 12px;
+    color: #adb5bd;
+    padding: 10px 0;
+}
